@@ -1,2 +1,2 @@
 # ray
-A didactic ray tracer in Haskell
+A didactic project to create a basic ray tracer in Haskell
