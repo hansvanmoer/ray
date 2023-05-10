@@ -34,7 +34,7 @@ camera position orientation viewPort = (C position orientation viewPort)
 rays :: Camera -> [(V.Vector, V.Vector)]
 
 rays camera = map (ray camera) (M.positions pixels (round ((fromIntegral pixels) * aspectRatio)))
-  where (C position (O alpha beta gamma) (P focalDistance viewAngle pixels aspectRatio)) = camera
+  where (C _ _ (P _ _ pixels aspectRatio)) = camera
 
 -- A ray
 ray :: Camera -> (Int, Int) -> (V.Vector, V.Vector)
@@ -46,27 +46,27 @@ ray camera (x, y) = (pos, (V.subtractVectors pos (focus camera)))
 focus :: Camera -> V.Vector
 
 focus camera = rotateCameraVector camera (V.subtractVectors position [0, (- focalDistance), 0.0])
-  where (C position (O alpha beta gamma) (P focalDistance _ _ _)) = camera
+  where (C position _ (P focalDistance _ _ _)) = camera
 
 -- The view port origin vector
 viewPortOrigin :: Camera -> V.Vector
 
 viewPortOrigin camera = rotateCameraVector camera [unit, 0.0, unit * aspectRatio]
-  where (C position (O alpha beta gamma) (P focalDistance viewAngle pixels aspectRatio)) = camera
+  where (C _ _ (P focalDistance viewAngle _ aspectRatio)) = camera
         unit = - (tan (viewAngle / 2.0)) * focalDistance
         
 -- The view port horizontal unit vector
 viewPortHorizontalUnit :: Camera -> V.Vector
 
 viewPortHorizontalUnit camera = rotateCameraVector camera [unit, 0.0, 0.0]
-  where (C position (O alpha beta gamma) (P focalDistance viewAngle pixels aspectRatio)) = camera
+  where (C _ _ (P focalDistance viewAngle pixels _)) = camera
         unit = (tan viewAngle) * focalDistance / (fromIntegral pixels)
   
 -- The view port vertical unit vector
 viewPortVerticalUnit :: Camera -> V.Vector
 
 viewPortVerticalUnit camera = rotateCameraVector camera [0.0, 0.0, unit * aspectRatio]
-  where (C position (O alpha beta gamma) (P focalDistance viewAngle pixels aspectRatio)) = camera
+  where (C _ _ (P focalDistance viewAngle pixels aspectRatio)) = camera
         unit = (tan viewAngle) * focalDistance / (fromIntegral pixels)
   
 -- Rotates a camera vector
