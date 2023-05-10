@@ -51,27 +51,41 @@ focus camera = rotateCameraVector camera (V.subtractVectors position [0, (- foca
 -- The view port origin vector
 viewPortOrigin :: Camera -> V.Vector
 
-viewPortOrigin camera = rotateCameraVector camera [unit, 0.0, unit * aspectRatio]
-  where (C _ _ (P focalDistance viewAngle _ aspectRatio)) = camera
-        unit = - (tan (viewAngle / 2.0)) * focalDistance
+viewPortOrigin camera = (V.subtractVectors position (rotateCameraVector camera [(viewPortWidth viewPort) / 2.0, 0.0, (viewPortHeight viewPort) / 2.0]))
+  where (C position _ viewPort) = camera
+
+viewPortWidth :: ViewPort -> Float
+
+viewPortWidth (P focalDistance viewAngle _ aspectRatio) = 2.0 * (tan (viewAngle / 2.0)) * focalDistance
+
+viewPortHeight viewPort = (viewPortWidth viewPort) * aspectRatio
+  where (P _ _ _ aspectRatio) = viewPort
+
+-- The norm of the horizontal unit vector
+viewPortHorizontalNorm :: ViewPort -> Float
+
+viewPortHorizontalNorm viewPort = (viewPortWidth viewPort / (fromIntegral pixels))
+  where (P _ _ pixels _) = viewPort
+
+-- The norm of the vertical unit vector
+viewPortVerticalNorm :: ViewPort -> Float
+
+viewPortVerticalNorm viewPort = (viewPortHeight viewPort / (fromIntegral pixels))
+  where (P _ _ pixels _) = viewPort
         
 -- The view port horizontal unit vector
 viewPortHorizontalUnit :: Camera -> V.Vector
 
-viewPortHorizontalUnit camera = rotateCameraVector camera [unit, 0.0, 0.0]
-  where (C _ _ (P focalDistance viewAngle pixels _)) = camera
-        unit = (tan viewAngle) * focalDistance / (fromIntegral pixels)
+viewPortHorizontalUnit camera = rotateCameraVector camera [viewPortHorizontalNorm viewPort, 0.0, 0.0]
+  where (C _ _ viewPort) = camera
   
 -- The view port vertical unit vector
 viewPortVerticalUnit :: Camera -> V.Vector
 
-viewPortVerticalUnit camera = rotateCameraVector camera [0.0, 0.0, unit * aspectRatio]
-  where (C _ _ (P focalDistance viewAngle pixels aspectRatio)) = camera
-        unit = (tan viewAngle) * focalDistance / (fromIntegral pixels)
+viewPortVerticalUnit camera = rotateCameraVector camera [0.0, 0.0, viewPortVerticalNorm viewPort]
+  where (C _ _ viewPort) = camera
   
 -- Rotates a camera vector
 rotateCameraVector :: Camera -> V.Vector -> V.Vector
 
 rotateCameraVector (C _ (O alpha beta gamma) _) vector = transformVector (rotate alpha beta gamma) vector
-
-
