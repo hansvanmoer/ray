@@ -1,7 +1,46 @@
-module Vector (Vector, getX, getY, getZ) where
+module Vector (Vector, addVectors, combineVectors, divideByScalar, getX, getY, getZ, multiplyByScalar, subtractVectors, zero) where
 
 -- A 3D vector as a (x, y, z) coordinate tuple
 type Vector = [Float]
+
+-- The zero vector
+zero :: Int -> Vector
+
+zero length = replicate length 0.0
+
+-- Adds vectors
+addVectors :: Vector -> Vector -> Vector
+
+addVectors left right
+  | (length left) == (length right) = zipWith (+) left right
+  | otherwise = error("vectors should be of same length")
+
+-- Adds vectors
+subtractVectors :: Vector -> Vector -> Vector
+
+subtractVectors left right
+  | (length left) == (length right) = zipWith (-) left right
+  | otherwise = error("vectors should be of same length")
+    
+-- Multiply vector with scalar
+multiplyByScalar :: Vector -> Float -> Vector
+
+multiplyByScalar left right = map (* right) left
+
+-- A linear combination of vectors
+combineVectors :: Vector -> Float -> Vector -> Float -> Vector
+
+combineVectors left leftScalar right rightScalar = addVectors (multiplyByScalar left leftScalar) (multiplyByScalar right rightScalar)
+
+-- Negates a vector
+negate :: Vector -> Vector
+
+negate v = multiplyByScalar v (- 1.0)
+
+-- Divide vector by a scalar
+divideByScalar :: Vector -> Float -> Vector
+
+divideByScalar left right = multiplyByScalar left (1.0 / right)
 
 -- Returns the x coordinate
 getX :: Vector -> Float

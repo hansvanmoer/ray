@@ -1,4 +1,4 @@
-module Transform (Transform) where
+module Transform (Transform, concatenateTransforms, identity, rotate, scale, transformVector, translate, uniformScale) where
 import qualified Matrix as M
 import qualified Vector as V
 
@@ -42,9 +42,9 @@ rotate rx ry rz = T (M.square 3 [
                         (cos rx) * (cos ry)]) (M.zero 3 1)
 
 -- Concatenates two transforms
-concatenate :: Transform -> Transform -> Transform
+concatenateTransforms :: Transform -> Transform -> Transform
 
-concatenate (T lLinear lTrans) (T rLinear rTrans) = T (M.multiplyMatrices rLinear lLinear) (M.addMatrices (M.multiplyMatrices rLinear lTrans) rLinear)
+concatenateTransforms (T lLinear lTrans) (T rLinear rTrans) = T (M.multiplyMatrices rLinear lLinear) (M.addMatrices (M.multiplyMatrices rLinear lTrans) rLinear)
 
 -- Transforms a vector
 transformVector :: Transform -> V.Vector -> V.Vector
