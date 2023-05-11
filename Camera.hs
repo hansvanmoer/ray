@@ -3,6 +3,42 @@ import qualified Matrix as M
 import Transform
 import qualified Vector as V
 
+-- A camera with specified properties located a view point
+data Camera = C Properties ViewPoint
+
+-- Constructs a camera
+camera :: Properties -> ViewPoint -> Camera
+
+camera props viewPoint = (C props viewPoint)
+
+-- Gets the properties from the camera
+getProperties :: Camera -> Properties
+
+getProperties (C props _) = props
+
+-- A ray from the camera through the pixel on the screen specified by the coordinates
+ray :: Camera -> (Int, Int) -> (V.Vector, V.Vector)
+
+ray (C props viewPoint) (x, y) = (pixel, V.subtractVectors pixel focus)
+  where
+    rotation = viewPointRotation viewPoint
+    translation = viewPointTranslation viewPoint
+    affine = concatenateTransforms translation rotation
+    origin = transformVector affine (viewPortOrigin props)
+    horizontalUnit = transformVector rotation (viewPortHorizontalUnit props)
+    verticalUnit = transformVector rotation (viewPortVerticalUnit props)
+    pixel = (V.addVectors origin (V.combineVectors horizontalUnit (fromIntegral x) verticalUnit (fromIntegral y)))
+    focus = transformVector affine (viewPortFocus props)
+
+-- All the rays emanating from the camera 
+rays :: Camera -> [(V.Vector, V.Vector)]
+
+rays camera = map (ray camera) (M.positions width height)
+  where
+    props = getProperties camera
+    width = viewPortHorizontalPixels props
+    height = viewPortVerticalPixels props
+
 -- Camera view point
 data ViewPoint = VP V.Vector Float Float Float
 
@@ -11,62 +47,71 @@ viewPoint :: V.Vector -> Float -> Float -> Float -> ViewPoint
 
 viewPoint position alpha beta gamma = (VP position alpha beta gamma)
 
+-- The view point rotation transform
+viewPointRotation :: ViewPoint -> Transform
 
--- Camera properties
-data Camera = C Float Float Int Float
+viewPointRotation (VP _ alpha beta gamma) = (rotate alpha beta gamma)
 
--- Creates a camera with a given focal distance, view angle, number of horizontal pixels and aspectRatio
-camera :: Float -> Float -> Int -> Float -> Camera
+-- The view point translation transform
+viewPointTranslation :: ViewPoint -> Transform
 
-camera focalDistance viewAngle pixels aspectRatio = (C focalDistance viewAngle pixels aspectRatio)
+viewPointTranslation (VP [x, y, z] _ _ _) = (translate x y z)
 
--- The focus point of the camera
-focus :: Camera -> V.Vector
+-- The camera properties
+data Properties = P Float Float Int Float
 
-focus (C focalDistance _ _ _) = [0.0, 0.0, - focalDistance]
+-- Defines a camera with a given focal distance, view angle, number of horizontal pixels and aspectRatio
+properties :: Float -> Float -> Int -> Float -> Properties
 
--- Gets the camera aspect ratio
-getAspectRatio :: Camera -> Float
+properties focalDistance viewAngle pixels aspectRatio = (P focalDistance viewAngle pixels aspectRatio)
 
-getAspectRatio (C _ _ _ aspectRatio) = aspectRatio
+-- The focus point of the viewport
+viewPortFocus :: Properties -> V.Vector
+
+viewPortFocus (P focalDistance _ _ _) = [0.0, 0.0, - focalDistance]
+
+-- Gets the view port aspect ratio
+getAspectRatio :: Properties -> Float
+
+getAspectRatio (P _ _ _ aspectRatio) = aspectRatio
 
 -- The number of horizontal pixels in the view port
-viewPortHorizontalPixels :: Camera -> Int
+viewPortHorizontalPixels :: Properties -> Int
 
-viewPortHorizontalPixels (C _ _ pixels _) = pixels
+viewPortHorizontalPixels (P _ _ pixels _) = pixels
 
 -- The number of vertical pixels in the view port
-viewPortVerticalPixels :: Camera -> Int
+viewPortVerticalPixels :: Properties -> Int
 
-viewPortVerticalPixels (C _ _ pixels aspectRatio) = round ((fromIntegral pixels) * aspectRatio)
+viewPortVerticalPixels (P _ _ pixels aspectRatio) = round ((fromIntegral pixels) * aspectRatio)
 
 -- The view port width
-viewPortWidth :: Camera -> Float
+viewPortWidth :: Properties -> Float
 
-viewPortWidth (C focalDistance viewAngle _ _) = (tan (viewAngle / 2.0)) * focalDistance
+viewPortWidth (P focalDistance viewAngle _ _) = (tan (viewAngle / 2.0)) * focalDistance
 
 -- The view port height
-viewPortHeight :: Camera -> Float
+viewPortHeight :: Properties -> Float
 
-viewPortHeight camera = (viewPortWidth camera) * (getAspectRatio camera)
+viewPortHeight vp = (viewPortWidth vp) * (getAspectRatio vp)
 
 -- The view port origin vector of the camera
-viewPortOrigin :: Camera -> V.Vector
+viewPortOrigin :: Properties -> V.Vector
 
-viewPortOrigin camera = [- width / 2.0, height / 2.0, 0.0]
-  where width = viewPortWidth camera
-        height = viewPortHeight camera
+viewPortOrigin vp = [- width / 2.0, height / 2.0, 0.0]
+  where width = viewPortWidth vp
+        height = viewPortHeight vp
 
 -- The view port's horizontal unit vector
-viewPortHorizontalUnit :: Camera -> V.Vector
+viewPortHorizontalUnit :: Properties -> V.Vector
 
-viewPortHorizontalUnit camera = [width / pixels, 0.0, 0.0]
-  where width = viewPortWidth camera
-        pixels = fromIntegral (viewPortHorizontalPixels camera)
+viewPortHorizontalUnit vp = [width / pixels, 0.0, 0.0]
+  where width = viewPortWidth vp
+        pixels = fromIntegral (viewPortHorizontalPixels vp)
 
 -- The view port's vertical unit vector
-viewPortVerticalUnit :: Camera -> V.Vector
+viewPortVerticalUnit :: Properties -> V.Vector
 
-viewPortVerticalUnit camera = [0.0, height / pixels, 0.0]
-  where height = viewPortHeight camera
-        pixels = fromIntegral (viewPortVerticalPixels camera)
+viewPortVerticalUnit vp = [0.0, height / pixels, 0.0]
+  where height = viewPortHeight vp
+        pixels = fromIntegral (viewPortVerticalPixels vp)
