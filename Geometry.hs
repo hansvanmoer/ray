@@ -1,19 +1,22 @@
-module Geometry (Geometry, intersectsWithGeometry, triangles) where
+module Geometry (Geometry, intersectionWithGeometry, triangles) where
 import Data.List
+import Data.Maybe
 import Linear
 import Material
 import Ray
+import Transform
 import Vector
 
 -- A geometry
 data Geometry = Triangles [Triangle]
 
 -- Intersects with a geometry
-intersectsWithGeometry :: Ray -> Geometry -> Bool
+intersectionWithGeometry :: Ray -> Transform -> Geometry -> Maybe Vector
 
-intersectsWithGeometry ray (Triangles t) = case find (intersectsWithTriangle ray) t of
-  Just _ -> True
-  otherwise -> False
+intersectionWithGeometry ray tr (Triangles t) = case find isJust (map (intersectionWithTriangle ray tr) t) of
+  Nothing -> Nothing
+  Just result -> result
+  
 
 -- A triangle as three vectors and a normal
 type Triangle = (Vector, Vector, Vector, Vector)
@@ -42,12 +45,16 @@ triangle v1 v2 v3
   | otherwise = (v1, v2, v3, (cross v1 v2))
 
 -- intersects with  triangle
-intersectsWithTriangle :: Ray -> Triangle -> Bool
+intersectionWithTriangle :: Ray -> Transform -> Triangle -> Maybe Vector
 
-intersectsWithTriangle ray (v1, v2, v3, _) = case solve(system) of
-  Just [k, l, m] -> k >= 0.0 && (withinTriangle v1 v2 v3 (addVectors v1 (combineVectors v2 l v3 m)))
-  Nothing -> False
+intersectionWithTriangle ray tr (w1, w2, w3, _) = case solve(system) of
+  Just [k, l, m] -> if k >= 0.0 && (withinTriangle v1 v2 v3 result) then Just result else Nothing
+    where result = addVectors v1 (combineVectors v2 l v3 m)
+  Nothing -> Nothing
   where
+    v1 = transformVector tr w1
+    v2 = transformVector tr w2
+    v3 = transformVector tr w3
     [xq, yq, zq] = v1
     [x1, y1, z1] = subtractVectors v2 v1
     [x2, y2, z2] = subtractVectors v3 v1
