@@ -1,4 +1,4 @@
-module Vector (Vector, addVectors, combineVectors, divideByScalar, getX, getY, getZ, multiplyByScalar, subtractVectors, zero) where
+module Vector (Vector, addVectors, combineVectors, divideByScalar, getX, getY, getZ, isNullVector, multiplyByScalar, subtractVectors, zero) where
 
 -- A 3D vector as a (x, y, z) coordinate tuple
 type Vector = [Float]
@@ -7,6 +7,15 @@ type Vector = [Float]
 zero :: Int -> Vector
 
 zero length = replicate length 0.0
+
+-- Whether the vector is the null vector
+isNullVector :: Vector -> Bool
+
+isNullVector [] = True
+
+isNullVector [x] = x == 0.0
+
+isNullVector (x:xs) = (x == 0.0) && (isNullVector xs)
 
 -- Adds vectors
 addVectors :: Vector -> Vector -> Vector

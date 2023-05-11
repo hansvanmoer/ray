@@ -1,5 +1,6 @@
 module Camera (Camera, camera, ViewPoint, viewPoint) where
 import qualified Matrix as M
+import Ray
 import Transform
 import qualified Vector as V
 
@@ -17,13 +18,13 @@ getProperties :: Camera -> Properties
 getProperties (C props _) = props
 
 -- A ray from the camera through the pixel on the screen specified by the coordinates
-ray :: Camera -> (Int, Int) -> (V.Vector, V.Vector)
+cameraRay :: Camera -> (Int, Int) -> Ray
 
-ray (C props viewPoint) (x, y) = (pixel, V.subtractVectors pixel focus)
+cameraRay (C props viewPoint) (x, y) = (ray pixel (V.subtractVectors pixel focus))
   where
     rotation = viewPointRotation viewPoint
     translation = viewPointTranslation viewPoint
-    affine = concatenateTransforms translation rotation
+    affine = concatenateTransforms rotation translation
     origin = transformVector affine (viewPortOrigin props)
     horizontalUnit = transformVector rotation (viewPortHorizontalUnit props)
     verticalUnit = transformVector rotation (viewPortVerticalUnit props)
@@ -31,9 +32,9 @@ ray (C props viewPoint) (x, y) = (pixel, V.subtractVectors pixel focus)
     focus = transformVector affine (viewPortFocus props)
 
 -- All the rays emanating from the camera 
-rays :: Camera -> [(V.Vector, V.Vector)]
+cameraRays :: Camera -> [Ray]
 
-rays camera = map (ray camera) (M.positions width height)
+cameraRays camera = map (cameraRay camera) (M.positions width height)
   where
     props = getProperties camera
     width = viewPortHorizontalPixels props
