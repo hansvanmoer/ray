@@ -15,3 +15,11 @@ normalize v
   | v < 0.0 = 0.0
   | v > 0.0 = 1.0
   | otherwise = v
+
+light :: Color -> Color -> Color
+
+light (RGBA lr lg lb la) (RGBA br bg bb ba) = RGBA r g b ba 
+  where
+    r = lr * la + br * (1.0 - la)
+    g = lg * la + bg * (1.0 - la)
+    b = lb * la + bb * (1.0 - la)
