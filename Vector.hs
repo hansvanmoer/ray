@@ -1,4 +1,4 @@
-module Vector (Vector, addVectors, combineVectors, divideByScalar, getX, getY, getZ, isNullVector, multiplyByScalar, subtractVectors, zero) where
+module Vector (Vector, addVectors, colinear, combineVectors, cross, divideByScalar, getX, getY, getZ, isNullVector, multiplyByScalar, subtractVectors, zero) where
 
 -- A 3D vector as a (x, y, z) coordinate tuple
 type Vector = [Float]
@@ -65,3 +65,17 @@ getY vector = vector !! 1
 getZ :: Vector -> Float
 
 getZ vector = vector !! 2
+
+-- True if three vectors are colinear
+colinear :: Vector -> Vector -> Vector -> Bool
+
+colinear [x1, y1, z1] [x2, y2, z2] [x3, y3, z3] = x1 * y2 * z3 +
+                                                  y1 * z2 * x1 +
+                                                  z1 * x2 * y3 -
+                                                  x3 * y2 * z1 -
+                                                  x2 * y1 * z3 -
+                                                  y3 * z2 * x1 == 0.0
+-- Calculates the cross product
+cross :: Vector -> Vector -> Vector
+
+cross [x1, y1, z1] [x2, y2, z2] = [(y1 * z2 - y2 * z1), - (x1 * z2 - x2 * z1), (x1 * y2 - x2 * y1)] 

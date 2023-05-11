@@ -18,7 +18,7 @@ extra-source-files:  CHANGELOG.md
 
 executable ray
   main-is:             Main.hs
-  other-modules:       BitMap, Camera, Color, Face, Image, Linear Material, Matrix, Model, Object, Ray, Scene, Transform, Vector
+  other-modules:       BitMap, Camera, Color, Face, Geometry Image, Linear Material, Matrix, Model, Object, Ray, Scene, Transform, Vector
   -- other-extensions:
   build-depends:       binary, bytestring, base >=4.13 && <4.14
   -- hs-source-dirs:
