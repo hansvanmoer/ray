@@ -1,0 +1,17 @@
+#
+# Ray git ignore file
+#
+
+#
+# Emacs
+#
+
+*~
+\#*
+\.#*
+
+#
+# Cabal
+#
+
+/dist-newstyle/**
