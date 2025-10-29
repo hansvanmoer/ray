@@ -1,4 +1,4 @@
-module Parser (Result, Parser, atLeastOneParser, branchParser, equalsParser, literalParser, makeParser, manyParser, optionalParser, predicateParser, runParser, takeParser, TextParser, parseText, testParser, textParser) where
+module Parser (Result, Parser, atLeastOneParser, branchParser, equalsParser, literalParser, makeParser, manyParser, optionalParser, predicateParser, runParser, takeParser, TextParser, parseText, testParser, textParser, Error, (<++>), (<:>)) where
 
 import Control.Applicative (Alternative, empty, (<|>))
 import Control.Monad (MonadPlus, mzero, mplus, sequence)
@@ -67,6 +67,12 @@ instance MonadPlus (Parser t) where
 instance MonadFail (Parser t) where
   -- fail :: String -> Parser t a
   fail msg = makeParser (\input -> Left (msg, input))
+
+(<++>) :: Parser t [a] -> Parser t [a] -> Parser t [a]
+(<++>) l r = l >>= (\result -> fmap ((++) result) r)
+
+(<:>) :: Parser t a -> Parser t [a] -> Parser t [a]
+(<:>) l r = pure (:) <*> l <*> r
 
 -- Parses nothing and returns a constant
 constantParser :: a -> Parser t a
